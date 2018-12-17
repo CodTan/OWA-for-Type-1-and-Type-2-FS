@@ -9,23 +9,29 @@ clear
 %% ************************* Define data *********************************
 
 W_dom = 0.0:0.5:1.0;
-A_dom = 0.0:1.0:2.0;
+A_dom = 0.0:1.0:3.0;
 A = [];
 W = [];
+
 % A = [trimf(A_dom,[0.0 2.0 2.0]); trimf(A_dom,[0.0 0.0 2.0]); trimf(A_dom,[0.0 1.0 2.0])];
-A = [trimf(A_dom,[0.0 0.0 2.0]); trimf(A_dom,[0.0 1.0 2.0])];
 % W = [trimf(W_dom,[0.0 0.0 1.0]); trimf(W_dom,[0.0 0.5 1.0]); trimf(W_dom,[0.0 1.0 1.0])];
+
+% A = [trimf(A_dom,[0.0 0.0 2.0]); trimf(A_dom,[0.0 1.0 2.0])];
+% W = [trimf(W_dom,[0.0 0.0 1.0]); trimf(W_dom,[0.0 1.0 1.0])];
+
+A = [trapmf(A_dom,[0.0 0.0 1.0 2.0]); trapmf(A_dom,[1.0 2.0 3.0 3.0])];
 W = [trimf(W_dom,[0.0 0.0 1.0]); trimf(W_dom,[0.0 1.0 1.0])];
 
-A_temp = [0.0 0.5 1.0];
+
+A_temp = [0.0 1.0 1.0 0.0];
 W_temp = [0.0 1.0 0.0];
 
 figure
-subplot(2,1,1);
+subplot(3,1,1);
 plot(A_dom,A,'b');
 hold on;
 plot(A_dom,A_temp,'b');
-subplot(2,1,2);
+subplot(3,1,2);
 plot(W_dom,W,'r');
 hold on;
 plot(W_dom,W_temp,'r');
@@ -105,7 +111,7 @@ for k = 1:size(alpha,2)
             numer_sum = numer_sum + W_plus(m)*A_minus(sigma(m));
         end
         if(l>1)
-            for n = 1:(size(A,1)-l)
+            for n = 1:(l-1)
                 denom_sum = denom_sum + W_minus(n);
                 numer_sum = numer_sum + W_minus(n)*A_minus(sigma(n));
             end
@@ -142,7 +148,7 @@ for k = 1:size(alpha,2)
             numer_sum = numer_sum + W_minus(m)*A_plus(sigma(m));
         end
         if(l>1)
-            for n = 1:(size(A,1)-l)
+            for n = 1:(l-1)
                 denom_sum = denom_sum + W_plus(n);
                 numer_sum = numer_sum + W_plus(n)*A_plus(sigma(n));
             end
@@ -162,6 +168,8 @@ for k = 1:size(alpha,2)
         numer_sum = 0;
     end
     
+    rho_minus = round(rho_minus);
+    rho_plus = round(rho_plus);
     left_right_interval = [rho_minus:rho_plus];
     lr_int{end+1} = [rho_minus:rho_plus];
     G{end+1} = intersect(left_right_interval,A_dom);
@@ -173,3 +181,24 @@ for k = 1:size(alpha,2)
     A_alpha_cell = {};
     W_alpha_cell = {};    
 end
+
+U = union(G{1},G{2});
+for i = 1:length(G)
+    U = union(U,G{i});
+end
+
+temp_mu = [];
+
+for j = 1:length(U)
+    for i = 1:length(alpha)
+        if(ismembertol(U(j),G{i},0.001))
+            temp_mu = [temp_mu alpha(i)];
+        end
+    end
+    mu_G = [mu_G,max(temp_mu)];
+    temp_mu = [];
+end
+
+subplot(3,1,3)
+plot(U,mu_G,'g');
+hold on
